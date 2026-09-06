@@ -56,6 +56,13 @@ skills/independent-mode
 skills/adaptive-memory
 ```
 
+多个 Agent 运行时共同识别的目录 / Cross-runtime location recognized by multiple agents:
+
+```text
+~/.agents/skills/independent-mode
+~/.agents/skills/adaptive-memory
+```
+
 Codex 示例 / Codex example:
 
 ```text

@@ -7,59 +7,58 @@ description: Use when the user explicitly requests independent mode, clean-slate
 
 ## The human idea
 
-Act like a person who closes their old notebook before solving a new problem. The notebook still exists, but it does not influence this task.
+Close the old notebook before solving a new problem. It still exists but cannot influence this task.
 
-Keep current facts. Re-derive assumptions, preferences, conclusions, and solutions.
+Keep current facts; re-derive conclusions and solutions.
 
 ## Context cutoff
 
 The invocation message is the cutoff.
 
-- Treat every pre-invocation message as historical material, including earlier messages in the same conversation.
-- Treat persistent memory, prior tasks, archived summaries, remembered preferences, and previous conclusions as historical material.
+- Historical material includes every pre-invocation message in this conversation, persistent memory, prior tasks, archived summaries, remembered preferences, and previous conclusions.
 - Do not retrieve, search, cite, summarize, or rely on that material.
-- A follow-up remains inside the boundary only when it directly continues or revises the isolated request.
+- A follow-up stays inside only when it directly continues or revises this request.
 
-On entry, briefly say that independent mode is active and name the allowed evidence categories. Do not reveal hidden memory content to prove it was ignored.
+On entry, name the allowed evidence categories without revealing hidden memory.
 
 ## Evidence boundary
 
 Use only:
 
 1. The invocation message and post-invocation user input.
-2. Current files the user supplies or authorizes, after checking their provenance.
+2. Files the user supplies or authorizes, with provenance checked.
 3. Evidence gathered during this isolated task.
 4. General knowledge, clearly separated from facts about the user or their environment.
 
-Never turn a common example into a user fact. Say “you could use a screen recorder,” not “you have OBS.” If a required fact is absent, inspect current evidence or ask.
+Never turn a common example into a user fact: say “you could use a screen recorder,” not “you have OBS.” Inspect or ask when facts are missing.
 
-System, developer, safety, current-user, and applicable project instructions remain active. This skill grants no authority to change files, accounts, permissions, payments, publishing, registration, or messages.
+Higher-priority instructions remain active. This skill grants no new authority.
 
 ## Re-admitting history
 
-History may enter only when the user supplies it after the cutoff or authorizes a precise source such as a named file, task, date, or memory ID.
+History may enter only when supplied after the cutoff or authorized by precise file, task, date, or memory ID.
 
-- Use only the identified scope; “use a previous project” is too broad.
-- Treat re-admitted history as a claim to re-check, not automatic truth.
+- Use only that scope; “use a previous project” is too broad.
+- Re-check re-admitted claims.
 - Current explicit requirements and current evidence win conflicts.
 
 ## Exit and memory lifecycle
 
 This is behavioral isolation, not physical erasure.
 
-- Exiting ends the boundary; it does not erase the conversation or any memory store.
-- Independent mode does not generate candidate memories and does not save the isolated conversation.
-- Do not claim that product-level memory, model knowledge, or hidden context was disabled.
+- Exiting ends the boundary; it does not erase the conversation or memory store.
+- Independent mode generates no candidate memories and does not save the isolated conversation.
+- Never claim product memory, model knowledge, or hidden context was disabled.
 - Actual deletion belongs to the relevant memory system and requires exact targets, impact, confirmation, and verification.
 
 ## Leakage recovery
 
 If a response uses a detail that came only from pre-invocation history:
 
-1. Withdraw the detail and identify it as outside the allowed evidence boundary.
+1. Withdraw the out-of-bound detail.
 2. Discard conclusions influenced by it.
 3. Re-derive the answer from allowed evidence.
-4. State any remaining uncertainty instead of filling the gap from memory.
+4. State uncertainty instead of filling gaps from memory.
 
 ## Quick reference
 
@@ -81,4 +80,4 @@ Stop and restart the reasoning if it includes:
 - A user-specific detail with no post-cutoff source.
 - A candidate memory or claim that the isolated conversation was saved.
 
-Remembering that history exists is not permission to use it.
+Knowing history exists is not permission to use it.
