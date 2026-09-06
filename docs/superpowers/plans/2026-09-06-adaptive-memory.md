@@ -208,10 +208,10 @@ Run:
 
 ```powershell
 Select-String -Path 'README.md' -Pattern 'any agent|任何 Agent|adaptive-memory|候选记忆|candidate memory'
-Select-String -Path 'README.md' -Pattern '^\|-- SKILL.md$|^`-- LICENSE$'
+Select-String -Path 'README.md' -Pattern '^\|-- SKILL.md$'
 ```
 
-Expected: cross-agent and adaptive-memory concepts are present; the obsolete single-skill tree patterns produce no matches.
+Expected: cross-agent and adaptive-memory concepts are present; the obsolete root-level `SKILL.md` tree pattern produces no matches.
 
 - [ ] **Step 3: Commit the README**
 

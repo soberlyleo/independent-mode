@@ -1,110 +1,178 @@
-# Independent Mode / 独立模式
+# Memory Modes / 记忆模式
 
-`independent-mode` is an explicit-only Agent Skill for clean-slate reasoning. It keeps the current request's requirements and raw facts, while setting aside persistent memory, prior tasks, historical chats, remembered preferences, and previously accepted conclusions.
+Two small Agent Skills for deciding when memory should stay quiet and when experience should be reconsidered.
 
-`independent-mode` 是一个仅支持显式调用的 Agent Skill，用于进行“独立思考”。它保留当前请求中的需求和原始事实，同时暂时搁置本地持久记忆、历史任务、过往聊天、记忆中的偏好和先前结论。
+两个小型 Agent Skill：一个让旧记忆暂时安静，另一个让 Agent 先独立思考，再审视过去的经验。
 
-## What it does / 功能
+## 先说人话
 
-- Builds answers from the current request, current workspace, newly gathered evidence, and general knowledge.
-  基于当前请求、当前工作区、最新收集的证据和通用知识构建答案。
-- Re-evaluates earlier assumptions and conclusions instead of carrying them forward automatically.
-  重新评估早期假设和结论，不自动将它们延续到当前任务。
-- Requests current evidence or clarification when a required fact is missing.
-  缺少必要事实时，要求提供当前证据或进一步说明。
+把 Agent 的记忆想成一本笔记本。
 
-## What it does not do / 不做什么
+- `independent-mode`：暂时合上旧笔记，只看眼前的问题。
+- `adaptive-memory`：先在白纸上自己做一遍，再翻相关笔记，最后问你要不要记下新经验。
 
-- It does not delete or disable a product's memory system.
-  它不会删除或关闭产品本身的记忆系统。
-- It does not erase model training or hidden context.
-  它不会抹除模型训练内容或隐藏上下文。
-- It does not override system, developer, safety, user, or project instructions.
-  它不会覆盖系统、开发者、安全、用户或项目指令。
+比如，你过去上班一直坐地铁，笔记里写着“地铁最快”。但今天地铁停运了：
 
-## Memory lifecycle / 记忆生命周期
+- 普通记忆可能直接照搬旧答案；
+- `independent-mode` 完全不看旧笔记，重新规划；
+- `adaptive-memory` 先根据今天的情况规划，再检查旧经验，最后提出一条候选记忆：“地铁通常最快；停运时比较公交和打车。”
 
-The design is inspired by scoped, expiring, and explicitly managed memory systems, but this Skill does not depend on Mem0 or call a memory API.
+只有你确认后，候选记忆才可以交给平台保存。
 
-本设计参考了“作用域、过期和显式管理”的记忆系统思路，但本 Skill 不依赖 Mem0，也不会调用记忆 API。
+## The human version
 
-- **Soft-forget / 软遗忘:** By default, exclude persistent memory and historical tasks for the current task only. Nothing is deleted.
-  默认仅在当前任务中排除本地记忆和历史任务，不删除任何数据。
-- **Expire / 过期:** The boundary ends when the task ends or independent mode is exited.
-  任务结束或退出独立模式后，隔离边界结束。
-- **Re-admit / 显式恢复:** Historical material returns only when the user supplies it as a current fact or explicitly authorizes an identified source and precise record scope (file, task, date, or memory ID); broad references such as “a previous project” do not qualify. Re-check it.
-  只有用户将历史内容作为当前事实提供，或明确授权具体来源和记录范围（文件、任务、日期或记忆 ID）时，才重新纳入；“之前的项目”这类宽泛说法不算。重新纳入后仍需核验。
-- **Workspace boundary / 工作区边界:** Memory directories, history exports, rollout summaries, and prior-task artifacts inside the workspace are also out of scope by default.
-  工作区内的记忆目录、历史导出、运行摘要和旧任务产物，默认同样不在范围内。
-- **Hard-delete / 硬删除:** Actual deletion is outside this Skill and must be handled by the relevant memory system with explicit authorization and verification.
-  真实删除不属于本 Skill 的能力，必须由对应记忆系统在明确授权和验证后执行。
+Think of Agent memory as a notebook.
 
-## Install / 安装
+- `independent-mode`: close the old notebook and focus on the problem in front of you.
+- `adaptive-memory`: solve on a blank page first, compare relevant notes second, and ask before writing a new note.
 
-Copy this directory to the skill directory supported by your Agent. The exact location depends on the runtime.
+Imagine the subway was always the fastest commute, but service is suspended today:
 
-将此目录复制到 Agent 支持的 Skill 目录。具体位置取决于运行环境。
+- ordinary memory may repeat the old answer;
+- `independent-mode` plans again without the notebook;
+- `adaptive-memory` plans from today’s facts, checks the old rule, then proposes: “The subway is usually fastest; during suspension, compare bus and taxi.”
 
-For Codex, use:
+Nothing is saved until the user confirms it.
 
-Codex 使用：
+## 两种模式 / Two modes
+
+| Skill | 中文 | English |
+|---|---|---|
+| `independent-mode` | 触发前的聊天、本地记忆、历史任务和旧结论不参与本次推导 | Pre-invocation chat, persistent memory, prior tasks, and old conclusions stay outside the reasoning boundary |
+| `adaptive-memory` | 先独立推导，再读取少量相关记忆进行对照，最后按需生成候选记忆 | Derives a solution first, compares a few relevant memories second, then proposes learning only when needed |
+
+两个 Skill 都只支持显式调用。它们不会因为你随口说“换个思路”就擅自翻历史。
+
+Both skills are explicit-only. A casual “try another idea” does not authorize memory retrieval or changes.
+
+## 安装 / Install
+
+将需要的 Skill 目录复制到你的 Agent Skill 目录：
+
+Copy either skill directory into the location supported by your Agent:
+
+```text
+skills/independent-mode
+skills/adaptive-memory
+```
+
+Codex 示例 / Codex example:
 
 ```text
 $CODEX_HOME/skills/independent-mode
+$CODEX_HOME/skills/adaptive-memory
 ```
 
-If `CODEX_HOME` is not configured, use:
+如果没有配置 `CODEX_HOME`，通常使用：
 
-如果未配置 `CODEX_HOME`，使用：
+If `CODEX_HOME` is not configured, usually use:
 
 ```text
 ~/.codex/skills/independent-mode
+~/.codex/skills/adaptive-memory
 ```
 
-For other Agent Skills–aware runtimes, follow their skill-discovery rules. If the runtime has no automatic discovery, load `SKILL.md` manually.
+其他支持 Agent Skills 的运行环境，请遵循它们自己的发现规则。安装后如未出现 Skill，请重新开始会话。
 
-其他支持 Agent Skills 的运行环境，请遵循其 Skill 发现规则。如果运行环境不支持自动发现，请手动加载 `SKILL.md`。
+For other Agent Skills-aware runtimes, follow their discovery rules. Start a new session if the installed skill is not detected immediately.
 
-Start a new session after installation if the runtime requires a refresh.
+## 使用 / Usage
 
-如果运行环境需要刷新，安装后重新开始一个会话。
-
-## Usage / 使用
-
-Invoke the skill explicitly at the beginning of a request. The exact command depends on the runtime; Codex uses:
-
-在请求开头显式调用。具体命令取决于运行环境；Codex 使用：
+### 完全独立思考 / Clean-slate reasoning
 
 ```text
-$independent-mode Reassess this architecture using only the current repository and evidence gathered now.
+$independent-mode 只根据我现在提供的信息，重新分析这个问题。
 ```
 
 ```text
-$independent-mode 仅基于当前仓库和现在收集的证据，重新评估这个架构。
+$independent-mode Reassess this problem using only the information I provide now.
 ```
 
-Implicit invocation is disabled to prevent ordinary tasks from unexpectedly losing useful continuity.
+### 先独立思考，再参考记忆 / Fresh thinking with memory comparison
 
-默认不会自动调用，避免普通任务意外失去有用的上下文连续性。
+```text
+$adaptive-memory 先根据当前事实独立提出方案，再与直接相关的历史经验对比。发现真正的新经验时，只生成候选记忆，未经我确认不要保存。
+```
 
-## Compatibility / 兼容性
+```text
+$adaptive-memory First derive a solution from current facts, then compare directly relevant experience. If meaningful learning occurs, propose candidate memory but do not save it without my confirmation.
+```
 
-This package is intended for Agent Skills–aware runtimes. Other agents may require manual loading of `SKILL.md` and may not recognize `$independent-mode`.
+## 没有 Skill 功能也能用 / Portable prompt for any agent
 
-此软件包面向支持 Agent Skills 的运行环境。其他 Agent 可能需要手动加载 `SKILL.md`，并且可能无法识别 `$independent-mode`。
+任何 Agent 都可以把下面这段文字当作普通提示词使用：
 
-## Package contents / 文件内容
+Any agent can use the following as an ordinary prompt:
+
+> 本次任务启用自适应记忆模式。先仅依据当前事实独立推导方案；形成初步结论后，再检索与本任务直接相关的历史记忆进行对照。不得直接照搬旧结论。仅在发现新事实、旧结论失效、适用条件变化或明确的新偏好时生成候选记忆；未经我确认，不得保存、修改或删除任何记忆。
+
+> Enable adaptive memory for this task. First derive a solution using only current facts. After forming a provisional conclusion, retrieve only history directly related to this task and compare it. Do not copy old conclusions. Propose candidate memory only for new facts, invalidated conclusions, changed conditions, or explicit durable preferences. Do not save, modify, or delete memory without my confirmation.
+
+## 候选记忆 / Candidate memory
+
+候选记忆不是“已经记住”，而是一张等待签字的便签。一次最多显示三条。
+
+A candidate memory is not persisted memory. It is a note waiting for approval, with at most three candidates shown at once.
+
+```text
+候选记忆 #1
+操作：修正
+类型：策略记忆
+内容：地铁通常最快；停运时比较公交和打车。
+依据：今天的服务通知显示地铁停运。
+适用条件：正常路线不可用时。
+可信度：高
+```
+
+可用操作 / Available decisions:
+
+- `保存 / save`
+- `修改 / modify`
+- `忽略 / ignore`
+- `永久忽略 / always ignore`
+- `使旧记忆失效 / invalidate old memory`
+
+结构化字段定义见 [`candidate-memory.schema.yaml`](skills/adaptive-memory/candidate-memory.schema.yaml)。
+
+See [`candidate-memory.schema.yaml`](skills/adaptive-memory/candidate-memory.schema.yaml) for the structured format.
+
+## 现实边界 / Honest limits
+
+- 这是行为协议，不会物理清空模型上下文或训练知识。
+- Skill 本身不会关闭、删除或写入平台的记忆系统。
+- 实际检索和保存取决于 Agent 是否提供记忆工具或适配器。
+- 没有写入能力时，`adaptive-memory` 只能输出可复制的候选内容，并明确说明尚未保存。
+- 系统、安全、开发者、用户和项目级指令始终优先。
+
+- This is a behavioral protocol; it cannot physically clear model context or training knowledge.
+- The skills do not disable, delete, or write a platform’s memory system themselves.
+- Retrieval and persistence depend on the Agent’s memory tools or adapter.
+- Without write capability, `adaptive-memory` only returns copyable candidate text and says it was not saved.
+- System, safety, developer, user, and project instructions remain in force.
+
+## Package contents / 文件结构
 
 ```text
 independent-mode/
-|-- SKILL.md
+|-- skills/
+|   |-- independent-mode/
+|   |   `-- SKILL.md
+|   `-- adaptive-memory/
+|       |-- SKILL.md
+|       `-- candidate-memory.schema.yaml
+|-- tests/
+|   `-- behavioral-cases.md
+|-- docs/
+|   `-- superpowers/
+|       |-- specs/
+|       `-- plans/
 |-- README.md
 `-- LICENSE
 ```
 
-The optional `agents/openai.yaml` metadata file is intentionally not included in this minimal cross-agent package.
+Optional platform metadata such as `agents/openai.yaml` is not part of the cross-agent core package.
 
-可选的 `agents/openai.yaml` 元数据文件未包含在这个面向跨 Agent 使用的最小软件包中。
+`agents/openai.yaml` 等平台专属元数据不属于跨 Agent 核心文件。
 
 ## License / 许可证
 
