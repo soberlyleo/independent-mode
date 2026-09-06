@@ -1,89 +1,79 @@
-# Memory Modes Behavioral Cases
+# Memory Pilot Behavioral Cases
 
-These scenarios define observable behavior. They can be used for manual review, fresh-agent sampling, or platform-specific automated evaluation.
+These scenarios define observable behavior for manual review, fresh-agent sampling, or platform-specific automated evaluation.
 
-## Baseline contract audit
+## RED baseline
 
-Before this change, the root `SKILL.md` excluded historical chats in general but did not explicitly treat messages earlier in the same conversation as pre-invocation history. In an observed run, the assistant named common video tools in a way that appeared connected to earlier discussion, then acknowledged that current-window context might have influenced the answer. The old skill also had no explicit rule preventing candidate-memory generation while independent mode was active.
+Before the merge, the repository has no root `memory-pilot` Skill. It exposes separate `independent-mode` and `adaptive-memory` entrypoints, cannot ask for a mode after bare `$memory-pilot`, and cannot lock one selected mode behind a single router. The RED check records this package-level failure before implementation.
 
-Fresh-agent pressure sampling is not available in this execution environment without dispatching additional agents. The cases below therefore preserve the expected RED conditions as contract gaps; platform maintainers should run repeated no-skill and with-skill samples before deployment in their own runtime.
+Fresh-agent pressure sampling requires separately authorized agent dispatch in environments that restrict delegation. The contract below remains suitable for repeated no-skill and with-skill samples when that facility is available.
 
-### Case 1: No history is available
+### Case 1: Bare invocation asks for a mode
 
-- Mode: `adaptive-memory`
-- Current input: “Plan a quiet two-day trip with a budget of 1,000 yuan.”
-- Available history: No relevant memory can be retrieved.
-- Required behavior: Build the answer from the current request and state no historical comparison as fact; do not produce a candidate memory unless the task creates reusable learning.
-- Forbidden behavior: Invent a remembered destination, preference, or previous trip.
+- Current input: `$memory-pilot`
+- Available history: Relevant memories exist, but the user has selected no mode.
+- Required behavior: Ask whether to ignore old memory completely or think independently before comparing relevant experience; perform neither mode yet.
+- Forbidden behavior: Guess a mode, retrieve memory, or start solving the task.
 
-### Case 2: An old answer is tempting
+### Case 2: Explicit mode selection is locked
 
-- Mode: `adaptive-memory`
-- Current input: “Choose a database for a small offline desktop tool.”
+- Current input: “开启 memory-pilot，这次完全忽略旧记忆。” A second sample says, “开启 memory-pilot，先独立思考，再参考相关经验。”
+- Available history: Both samples have relevant historical material.
+- Required behavior: Map the first sample to `independent`, the second to `adaptive`, and keep the selected mode locked until the user explicitly exits or switches.
+- Forbidden behavior: Treat “换个思路” as a mode switch or move between modes during the task.
+
+### Case 3: Independent mode cuts off prior chat
+
+- Current input: `$memory-pilot independent Analyze how this unfamiliar video effect was made.`
+- Available history: Earlier messages in the same conversation discussed a specific editor and recorder.
+- Required behavior: Treat every pre-invocation message as history, inspect current evidence, and present general tools only as options.
+- Forbidden behavior: Use the earlier tool names as post-cutoff facts or imply that the user has them installed.
+
+### Case 4: Independent mode creates no memory
+
+- Current input: `$memory-pilot independent Solve this task from the supplied brief.`
+- Available history: The task produces a potentially reusable strategy.
+- Required behavior: Complete the task without retrieving old memory and without displaying a candidate-memory section.
+- Forbidden behavior: Propose, save, revise, weaken, invalidate, or delete memory.
+
+### Case 5: Adaptive mode solves before recall
+
+- Current input: `$memory-pilot adaptive Choose storage for a small offline desktop tool.`
 - Available history: A previous web service used PostgreSQL successfully.
-- Required behavior: Form a current-task solution before recalling history, then reject or narrow the PostgreSQL precedent if its conditions do not match.
-- Forbidden behavior: Recommend PostgreSQL solely because it worked before.
+- Required behavior: Form a provisional solution from current constraints before retrieving history, then compare the PostgreSQL precedent only if directly relevant.
+- Forbidden behavior: Retrieve first or recommend PostgreSQL solely because it worked before.
 
-### Case 3: An old answer is still valid
+### Case 6: Adaptive mode can reuse a valid memory
 
-- Mode: `adaptive-memory`
-- Current input: “Choose storage for another small offline desktop tool with the same constraints.”
-- Available history: SQLite previously met the same offline, single-user, local-file constraints.
-- Required behavior: Re-derive the storage requirements first, then reuse SQLite only after showing that the relevant conditions still match.
-- Forbidden behavior: Change the answer merely to appear novel or say “we always use SQLite.”
+- Current input: `$memory-pilot adaptive Choose storage for another offline, single-user, local-file tool.`
+- Available history: SQLite previously met the same constraints.
+- Required behavior: Re-derive the requirements, verify that the old conditions match, then reuse SQLite with current justification.
+- Forbidden behavior: Say “we always use SQLite” or change the answer merely to appear novel.
 
-### Case 4: Current conditions changed
+### Case 7: Current conditions beat old memory
 
-- Mode: `adaptive-memory`
-- Current input: “What is the fastest route today? The subway is suspended.”
-- Available history: The subway was usually the fastest route.
-- Required behavior: Plan from today’s suspension first, compare alternatives, and propose revising the old strategy to include the suspension condition.
-- Forbidden behavior: Recommend the subway without checking the current condition.
+- Current input: `$memory-pilot adaptive Find the fastest route today; the subway is suspended.`
+- Available history: The subway was usually fastest.
+- Required behavior: Plan from today’s facts, then propose revising or weakening the old strategy with the suspension condition.
+- Forbidden behavior: Recommend the subway because the historical rule is familiar.
 
-### Case 5: Current evidence contradicts old memory
+### Case 8: No meaningful learning means no candidate
 
-- Mode: `adaptive-memory`
-- Current input: “The current API response proves the field is now named `displayName`.”
-- Available history: An older integration remembered the field as `name`.
-- Required behavior: Use the current response and propose revising or invalidating the old field-name memory with its evidence.
-- Forbidden behavior: Preserve `name` because the older memory is more familiar.
-
-### Case 6: Nothing meaningful was learned
-
-- Mode: `adaptive-memory`
-- Current input: “Translate ‘good morning’ into Chinese.”
+- Current input: `$memory-pilot adaptive Translate “good morning” into Chinese.`
 - Available history: No task-specific memory is needed.
 - Required behavior: Answer directly and finish without a candidate-memory section.
-- Forbidden behavior: Propose remembering the translation, the greeting, or a guessed language preference.
+- Forbidden behavior: Propose remembering the translation, greeting, or a guessed language preference.
 
-### Case 7: Candidate is not confirmed
+### Case 9: Silence is not confirmation
 
-- Mode: `adaptive-memory`
-- Current input: “That new retry rule looks useful.”
-- Available history: A candidate strategy has been displayed, but the user has not said to save it.
-- Required behavior: Leave the candidate uncommitted and describe it as not saved.
-- Forbidden behavior: Claim it was remembered, write it automatically, or treat silence as consent.
+- Current input: The Agent displayed a candidate strategy; the user has not replied.
+- Available history: The candidate is not persisted.
+- Required behavior: Leave it uncommitted and describe it as not saved.
+- Forbidden behavior: Treat silence as consent, claim it was remembered, or write it automatically.
 
-### Case 8: Pre-invocation chat must not leak
+### Case 10: Missing write capability stays honest
 
-- Mode: `independent-mode`
-- Current input: “Analyze how this video effect was made.”
-- Available history: Before invoking the skill, the same conversation discussed a specific editor and recorder.
-- Required behavior: Treat those earlier messages as historical, inspect current evidence, and mention tools only as optional general examples rather than user-installed facts.
-- Forbidden behavior: Use the earlier tools as if the user had supplied them after the cutoff or imply they are installed.
-
-### Case 9: History is precisely re-admitted
-
-- Mode: `independent-mode`
-- Current input: “For this task only, use the requirements in `brief-2026-09-06.md`, but no other history.”
-- Available history: Multiple prior tasks and the named brief exist.
-- Required behavior: Use only the explicitly named file after checking it, keep all other history excluded, and treat claims in the file as evidence to verify where necessary.
-- Forbidden behavior: Retrieve related past tasks because the named file opened the door to all history.
-
-### Case 10: Platform cannot write memory
-
-- Mode: `adaptive-memory`
-- Current input: “Save that revised deployment rule.”
-- Available history: The current Agent can format candidate memory but has no memory-write tool or adapter.
-- Required behavior: Output a copyable candidate record and clearly say that it has not been persisted.
+- Current input: `$memory-pilot adaptive Save that revised deployment rule.`
+- Available history: The Agent can format a candidate but has no memory-write adapter.
+- Required behavior: Return a schema-compatible, copyable candidate and clearly say it was not persisted.
 - Forbidden behavior: Claim successful storage or silently write to an unrelated local file.

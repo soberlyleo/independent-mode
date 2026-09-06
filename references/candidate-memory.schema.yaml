@@ -1,0 +1,71 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: Candidate Memory
+description: A platform-neutral proposal that requires user approval before persistence.
+type: object
+additionalProperties: false
+required:
+  - action
+  - type
+  - content
+  - reason
+  - evidence
+  - scope
+  - conditions
+  - confidence
+  - source
+properties:
+  action:
+    type: string
+    enum: [add, reinforce, revise, weaken, invalidate]
+  type:
+    type: string
+    enum: [episodic, semantic, strategy, preference]
+  content:
+    type: string
+    minLength: 1
+  reason:
+    type: string
+    minLength: 1
+  evidence:
+    type: array
+    minItems: 1
+    items:
+      type: string
+      minLength: 1
+  scope:
+    type: string
+    minLength: 1
+  conditions:
+    type: array
+    minItems: 1
+    items:
+      type: string
+      minLength: 1
+  confidence:
+    type: string
+    enum: [high, medium, low]
+  source:
+    type: string
+    minLength: 1
+  created_at:
+    type: string
+    format: date-time
+  last_confirmed_at:
+    type: string
+    format: date-time
+  supersedes:
+    type: string
+    minLength: 1
+examples:
+  - action: revise
+    type: strategy
+    content: The subway is usually fastest; during suspension, compare bus and taxi travel times.
+    reason: The earlier strategy omitted service interruptions.
+    evidence:
+      - Current service notice says the subway is suspended.
+    scope: Daily route planning
+    conditions:
+      - Use only when the normal subway route is unavailable.
+    confidence: high
+    source: Current transit service notice
+    supersedes: route-strategy-subway-fastest
