@@ -169,10 +169,6 @@ independent-mode/
 |       `-- candidate-memory.schema.yaml
 |-- tests/
 |   `-- behavioral-cases.md
-|-- docs/
-|   `-- superpowers/
-|       |-- specs/
-|       `-- plans/
 |-- README.md
 `-- LICENSE
 ```
