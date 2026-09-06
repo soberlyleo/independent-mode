@@ -22,6 +22,23 @@
 - It does not override system, developer, safety, user, or project instructions.
   它不会覆盖系统、开发者、安全、用户或项目指令。
 
+## Memory lifecycle / 记忆生命周期
+
+The design is inspired by scoped, expiring, and explicitly managed memory systems, but this Skill does not depend on Mem0 or call a memory API.
+
+本设计参考了“作用域、过期和显式管理”的记忆系统思路，但本 Skill 不依赖 Mem0，也不会调用记忆 API。
+
+- **Soft-forget / 软遗忘:** By default, exclude persistent memory and historical tasks for the current task only. Nothing is deleted.
+  默认仅在当前任务中排除本地记忆和历史任务，不删除任何数据。
+- **Expire / 过期:** The boundary ends when the task ends or independent mode is exited.
+  任务结束或退出独立模式后，隔离边界结束。
+- **Re-admit / 显式恢复:** Historical material returns only when the user supplies it as a current fact or explicitly authorizes an identified source and precise record scope (file, task, date, or memory ID); broad references such as “a previous project” do not qualify. Re-check it.
+  只有用户将历史内容作为当前事实提供，或明确授权具体来源和记录范围（文件、任务、日期或记忆 ID）时，才重新纳入；“之前的项目”这类宽泛说法不算。重新纳入后仍需核验。
+- **Workspace boundary / 工作区边界:** Memory directories, history exports, rollout summaries, and prior-task artifacts inside the workspace are also out of scope by default.
+  工作区内的记忆目录、历史导出、运行摘要和旧任务产物，默认同样不在范围内。
+- **Hard-delete / 硬删除:** Actual deletion is outside this Skill and must be handled by the relevant memory system with explicit authorization and verification.
+  真实删除不属于本 Skill 的能力，必须由对应记忆系统在明确授权和验证后执行。
+
 ## Install / 安装
 
 Copy this directory to the skill directory supported by your Agent. The exact location depends on the runtime.
