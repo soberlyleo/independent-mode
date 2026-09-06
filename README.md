@@ -115,6 +115,22 @@ $CODEX_HOME/skills/memory-pilot
 
 For other Agent Skills-aware runtimes, follow their discovery rules. Any agent without Skill support can use the natural-language instructions as a normal prompt.
 
+## 让 AI 帮你安装 / Ask AI to install it
+
+不想研究目录路径？把下面这段直接发给你的 AI Agent：
+
+```text
+请从 https://github.com/soberlyleo/memory-pilot 安装 memory-pilot 到我的用户级 Skill 目录。
+不要删除或覆盖其他 Skill。安装后检查 SKILL.md 和 references/candidate-memory.schema.yaml 是否存在，并告诉我是否需要重启会话。
+```
+
+If you prefer English, send this:
+
+```text
+Install memory-pilot from https://github.com/soberlyleo/memory-pilot into my user-level Skill directory.
+Do not delete or overwrite any other skills. Verify that SKILL.md and references/candidate-memory.schema.yaml exist, then tell me whether I need to restart the session.
+```
+
 ## 候选记忆 / Candidate memory
 
 只有 `adaptive` 模式会提出候选，并且一次最多三条。适合形成候选的内容包括：新事实、可复用策略、变化的条件、被推翻的结论和明确的长期偏好。
